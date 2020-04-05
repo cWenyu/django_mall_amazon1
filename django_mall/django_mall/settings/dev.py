@@ -10,10 +10,26 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
-import os
+import os, sys
+
+"""
+sys path:
+/home/wenyu/Desktop/django_mall_amazon1/django_mall
+/home/wenyu/Desktop/django_mall_amazon1
+/snap/pycharm-professional/192/plugins/python/helpers/pycharm_display
+/usr/lib/python37.zip
+/usr/lib/python3.7
+/usr/lib/python3.7/lib-dynload
+/home/wenyu/.environments/django_mall_vir1/lib/python3.7/site-packages
+/snap/pycharm-professional/192/plugins/python/helpers/pycharm_matplotlib_backend
+"""
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# 添加导包路径
+sys.path.insert(0, os.path.join(BASE_DIR, 'apis'))
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -27,9 +43,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
-
+# register
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -37,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',  # drf注册
 ]
 
 MIDDLEWARE = [
@@ -69,17 +85,62 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'django_mall.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
+
+
+# settings mysql 配置项
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': '127.0.0.1',  # 数据库主机
+        'PORT': 3306,  # 数据库端口
+        'USER': 'root',  # 数据库用户名
+        'PASSWORD': 'root',  # 数据库用户密码
+        'NAME': 'django_mall1'  # 数据库名字
     }
 }
 
+# django-redis
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    "session": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    "redis_verifications": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/2",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+}
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "session"
+
+# 同时修改了Django的Session机制使用redis保存，且使用名为'session'的redis配置。
+#
+# 此处修改Django的Session机制存储主要是为了给Admin站点使用。
+#
+# 关于django-redis 的使用，说明文档可见http://django-redis-chs.readthedocs.io/zh_CN/latest/
+# http://doc.redisfans.com/
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -99,7 +160,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
@@ -113,8 +173,62 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+LOGGING = {
+    'version': 1,  # 保留子
+    'disable_existing_loggers': False,  # 禁用在logger中的实例
+    # 日志的格式
+    'formatters': {
+        # 详细一点的
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(lineno)d %(message)s'
+        },
+        # 简单一点的
+        'simple': {
+            'format': '%(levelname)s %(module)s %(lineno)d %(message)s'
+        },
+    },
+
+    # 那些日志可以从loggers传送到handlers
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    # 控制日志存放到哪里
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(os.path.dirname(BASE_DIR), "logs/django_mall_log.log"),  # 日志文件的位置
+            'maxBytes': 300 * 1024 * 1024,
+            'backupCount': 10,
+            'formatter': 'verbose'
+        },
+    },
+    # 把日志传给handlers
+    'loggers': {
+        'django': {  # 定义了一个名为django的日志器
+            'handlers': ['console', 'file'],
+            'propagate': True,
+        },
+    }
+}
+
+# 配置文件中添加
+
+# 异常
+REST_FRAMEWORK = {
+    # 异常处理
+    'EXCEPTION_HANDLER': 'django_mall.tools.exceptions.exception_handler',
+}
