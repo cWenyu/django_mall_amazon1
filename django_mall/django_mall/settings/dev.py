@@ -39,7 +39,12 @@ SECRET_KEY = 'y!o)j$q6q48p=wb(wqq31_0($1x-8=31$&*l)c!8h0qj^+)p*t'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    'www.mall.site',
+    'api.mall.site'
+]
 
 # Application definition
 # register
@@ -52,9 +57,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',  # drf注册
     'users.apps.UsersConfig',  # users 注册
+    'corsheaders',  # corsheaders注册
+
 ]
 
+# 中间件有顺序问题
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -232,3 +241,14 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'django_mall.tools.exceptions.exception_handler',
 }
 AUTH_USER_MODEL = 'users.User'  # 子应用名.模型类名
+
+# 4 添加白名单
+# CORS
+CORS_ORIGIN_WHITELIST = (
+    'http://127.0.0.1:8080',
+    'http://localhost:8080',
+    'http://www.mall.site:8080',
+    'http://api.mall.site:8000'
+
+)
+CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
