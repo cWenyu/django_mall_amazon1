@@ -30,8 +30,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 添加导包路径
 sys.path.insert(0, os.path.join(BASE_DIR, 'apis'))
 
-
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
@@ -53,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',  # drf注册
+    'users.apps.UsersConfig',  # users 注册
 ]
 
 MIDDLEWARE = [
@@ -232,3 +231,4 @@ REST_FRAMEWORK = {
     # 异常处理
     'EXCEPTION_HANDLER': 'django_mall.tools.exceptions.exception_handler',
 }
+AUTH_USER_MODEL = 'users.User'  # 子应用名.模型类名
